@@ -1,0 +1,65 @@
+@model QuanLyChoThuePhongTro.Models.RentalContract
+
+@{
+    ViewData["Title"] = "Xóa hợp đồng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Xác nhận Xóa Hợp Đồng</h2>
+<hr />
+
+<div class="alert alert-warning">
+    <strong>⚠ Cảnh báo:</strong> Bạn đang chuẩn bị xóa hợp đồng này. Hành động này không thể hoàn tác.
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <table class="table table-bordered">
+            <tr>
+                <th>Phòng</th>
+                <td>@Model.Room?.Title</td>
+            </tr>
+            <tr>
+                <th>Người thuê</th>
+                <td>@Model.Tenant?.FullName</td>
+            </tr>
+            <tr>
+                <th>Giá hàng tháng</th>
+                <td>@Model.MonthlyPrice.ToString("N0") VNĐ</td>
+            </tr>
+            <tr>
+                <th>Từ ngày</th>
+                <td>@Model.StartDate.ToString("dd/MM/yyyy")</td>
+            </tr>
+            <tr>
+                <th>Đến ngày</th>
+                <td>@Model.EndDate.ToString("dd/MM/yyyy")</td>
+            </tr>
+            <tr>
+                <th>Trạng thái</th>
+                <td>
+                    @if (Model.Status == "Active")
+                    {
+                        <span class="badge bg-success">Đang hoạt động</span>
+                    }
+                    else if (Model.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@Model.Status</span>
+                    }
+                </td>
+            </tr>
+        </table>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">🗑 Xóa hợp đồng</button>
+                <a asp-action="Index" class="btn btn-secondary">Hủy — Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,72 @@
+@model QuanLyChoThuePhongTro.Models.Payment
+
+@{
+    ViewData["Title"] = "Chi tiết thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container page-section">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h2 class="mb-0">Chi Tiết Thanh Toán</h2>
+        <a href="@Url.Action("ByContract", new { contractId = Model.ContractId })" class="btn btn-outline-secondary">Quay lại danh sách</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card info-card">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">Mã giao dịch: #@Model.Id</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                    <tr>
+                        <th style="width: 200px;">Hợp đồng</th>
+                        <td class="text-break">#@Model.ContractId — @Model.Contract?.Room?.Title</td>
+                    </tr>
+                    <tr>
+                        <th>Người thuê</th>
+                        <td class="text-break">@Model.Contract?.Tenant?.FullName</td>
+                    </tr>
+                    <tr>
+                        <th>Thời điểm</th>
+                        <td>@Model.PaymentDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    </tr>
+                    <tr>
+                        <th>Số tiền</th>
+                        <td class="text-success fw-bold">@Model.Amount.ToString("N0") VNĐ</td>
+                    </tr>
+                    <tr>
+                        <th>Phương thức</th>
+                        <td>@Model.PaymentMethod</td>
+                    </tr>
+                    <tr>
+                        <th>Trạng thái</th>
+                        <td>
+                            @if (Model.Status == "Completed")
+                            {
+                                <span class="badge bg-success">Thành công</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning">@Model.Status</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Ghi chú</th>
+                        <td class="text-break">@Model.Notes</td>
+                    </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="@Url.Action("ByContract", new { contractId = Model.ContractId })" class="btn btn-secondary">Quay lại danh sách</a>
+                        <button class="btn btn-outline-primary" onclick="window.print()">🖨 In hóa đơn</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

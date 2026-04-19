@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="KillRunningApp" BeforeTargets="Build">
+    <!-- Kill the process if it is running to prevent file locking -->
+    <Exec Command="powershell -Command &quot;Stop-Process -Name 'QuanLyChoThuePhongTro' -Force -ErrorAction SilentlyContinue&quot;" IgnoreExitCode="true" Condition="'$(OS)' == 'Windows_NT'" />
+  </Target>
+</Project>

@@ -1,0 +1,59 @@
+@model QuanLyChoThuePhongTro.Models.User
+
+@{
+    ViewData["Title"] = "Xóa người dùng";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-times"></i> Xác nhận xóa người dùng</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead text-center mb-4">Bạn có chắc chắn muốn xóa người dùng này không?</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác. Mọi dữ liệu liên quan đến người dùng này có thể bị ảnh hưởng.
+                    </div>
+
+                    <table class="table">
+                        <tr>
+                            <th style="width: 40%">Tài khoản:</th>
+                            <td><strong>@Model.Username</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Họ tên:</th>
+                            <td>@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Vai trò:</th>
+                            <td>
+                                <span class="badge @(Model.Role == "Admin" ? "bg-danger" : Model.Role == "Landlord" ? "bg-success" : "bg-primary")">
+                                    @Model.Role
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <form asp-action="Delete" class="mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xác nhận Xóa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

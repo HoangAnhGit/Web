@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Tạo phòng mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h2>Đăng Phòng Trọ Mới</h2>
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">Tiêu đề:</label>
+                <input type="text" class="form-control" id="title" name="title" required />
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Mô tả:</label>
+                <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Giá thuê (VNĐ/tháng):</label>
+                        <input type="number" class="form-control" id="price" name="price" required />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="area" class="form-label">Diện tích (m²):</label>
+                        <input type="number" class="form-control" id="area" name="area" step="0.1" required />
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="location" class="form-label">Địa chỉ:</label>
+                <input type="text" class="form-control" id="location" name="location" required />
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="district" class="form-label">Quận:</label>
+                        <input type="text" class="form-control" id="district" name="district" required />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="ward" class="form-label">Phường:</label>
+                        <input type="text" class="form-control" id="ward" name="ward" required />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="bedrooms" class="form-label">Số phòng ngủ:</label>
+                        <input type="number" class="form-control" id="bedrooms" name="bedrooms" value="1" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="bathrooms" class="form-label">Số phòng tắm:</label>
+                        <input type="number" class="form-control" id="bathrooms" name="bathrooms" value="1" />
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hasKitchen" name="hasKitchen" />
+                    <label class="form-check-label" for="hasKitchen">Có bếp</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hasWiFi" name="hasWiFi" />
+                    <label class="form-check-label" for="hasWiFi">Có WiFi</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hasAirConditioner" name="hasAirConditioner" />
+                    <label class="form-check-label" for="hasAirConditioner">Có điều hòa</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hasWashing" name="hasWashing" />
+                    <label class="form-check-label" for="hasWashing">Có máy giặt</label>
+                </div>
+            </div>
+
+            @* Upload ảnh phòng *@
+            <div class="mb-4">
+                <label class="form-label fw-bold">📷 Ảnh phòng:</label>
+                <input type="file" class="form-control" name="roomImages" id="roomImages"
+                       accept="image/jpeg,image/png,image/gif,image/webp" multiple />
+                <div class="form-text text-muted">Chọn một hoặc nhiều ảnh (jpg, png, gif, webp).</div>
+                <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Đăng phòng</button>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">Hủy</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('roomImages').addEventListener('change', function () {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'position:relative;';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.cssText = 'width:120px;height:90px;object-fit:cover;border-radius:8px;border:2px solid #dee2e6;';
+                    img.title = file.name;
+                    wrapper.appendChild(img);
+                    preview.appendChild(wrapper);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+}

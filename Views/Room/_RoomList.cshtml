@@ -1,0 +1,77 @@
+@model IEnumerable<QuanLyChoThuePhongTro.Models.Room>
+
+<div class="row mt-4">
+    <div class="col-12 mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Kết quả tìm kiếm</h5>
+            <span id="roomCountBadge" class="badge rounded-pill bg-primary">@Model.Count() phòng</span>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="col-12" id="noRoomBlock">
+            <div class="alert alert-info">Không tìm thấy phòng nào phù hợp với yêu cầu của bạn.</div>
+        </div>
+    }
+    else
+    {
+        @foreach (var room in Model)
+        {
+            var firstImage = !string.IsNullOrEmpty(room.ImageUrls)
+                ? room.ImageUrls.Split(',', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()
+                : null;
+
+            <div class="col-lg-4 col-md-6 mb-4 room-card" id="room-card-@room.Id">
+                <div class="card h-100 shadow border-0">
+                    @if (firstImage != null)
+                    {
+                        <img src="@firstImage" class="card-img-top"
+                             alt="@room.Title"
+                             style="height:200px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="bg-light d-flex align-items-center justify-content-center"
+                             style="height:200px;">
+                            <span class="text-muted" style="font-size:2rem;">🏠</span>
+                        </div>
+                    }
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">@room.Title</h5>
+                            @{
+                                var statusClass = room.Status == "Available" ? "bg-success" : room.Status == "Rented" ? "bg-secondary" : "bg-warning text-dark";
+                            }
+                            <span class="badge @statusClass">@room.Status</span>
+                        </div>
+
+                        <p class="card-text">
+                            <strong>Giá:</strong> <span class="text-danger fw-semibold">@room.Price.ToString("N0") VNĐ/tháng</span><br />
+                            <strong>Vị trí:</strong> @room.Location, @room.Ward, @room.District<br />
+                            <strong>Tiện ích:</strong>
+                            @if (room.HasWiFi) { <span class="badge bg-secondary">WiFi</span> }
+                            @if (room.HasAirConditioner) { <span class="badge bg-secondary">Điều hòa</span> }
+                            @if (room.HasKitchen) { <span class="badge bg-secondary">Bếp</span> }
+                            @if (room.HasWashing) { <span class="badge bg-secondary">Máy giặt</span> }
+                            <br />
+                            <strong>Diện tích:</strong> @room.Area m²<br />
+                            <strong>Phòng ngủ:</strong> @room.Bedrooms | <strong>Phòng tắm:</strong> @room.Bathrooms
+                        </p>
+                        <div class="mt-auto d-flex gap-1 flex-wrap">
+                            <a href="@Url.Action("Details", "Room", new { id = room.Id })" class="btn btn-primary flex-grow-1">Xem chi tiết</a>
+                            @if (Context.Session.GetString("Role") == "Landlord" && Context.Session.GetInt32("UserId") == room.OwnerId)
+                            {
+                                <a href="@Url.Action("Edit", "Room", new { id = room.Id })" class="btn btn-warning">Sửa</a>
+                                <form method="post" action="@Url.Action("DeleteAjax", "Room", new { id = room.Id })" class="d-inline js-room-delete-form" data-room-id="@room.Id">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger">Xóa</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

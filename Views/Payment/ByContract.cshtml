@@ -1,0 +1,264 @@
+@model IEnumerable<QuanLyChoThuePhongTro.Models.Payment>
+
+@{
+    ViewData["Title"] = "Lịch sử thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var contract = ViewBag.Contract as QuanLyChoThuePhongTro.Models.RentalContract;
+    var role = ViewBag.UserRole as string;
+}
+
+<div class="container page-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h2 class="mb-1">Lịch Sử Thanh Toán</h2>
+            <p class="text-muted mb-0">Theo dõi các khoản đã thanh toán của hợp đồng hiện tại.</p>
+        </div>
+        <a href="@Url.Action("Index", "RentalContract")" class="btn btn-outline-secondary">← Quay lại hợp đồng</a>
+    </div>
+
+    <div id="paymentActionAlert"></div>
+
+    @if (contract != null)
+    {
+        <div class="card info-card mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3">Hợp đồng #@contract.Id — @contract.Room?.Title</h5>
+                <div class="row g-2">
+                    <div class="col-md-4"><span class="text-muted">Người thuê:</span> <strong>@contract.Tenant?.FullName</strong></div>
+                    <div class="col-md-4"><span class="text-muted">Chủ nhà:</span> <strong>@contract.Landlord?.FullName</strong></div>
+                    <div class="col-md-4"><span class="text-muted">Giá thuê:</span> <strong>@contract.MonthlyPrice.ToString("N0") VNĐ/tháng</strong></div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (role == "Tenant" && contract?.Status == "Active")
+    {
+        <div class="card info-card mb-4">
+            <div class="card-body p-4">
+                <h5 class="mb-3">Thanh toán mới</h5>
+                <form id="paymentAjaxForm" method="post" action="@Url.Action("CreateAjax", "Payment")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="ContractId" value="@contract!.Id" />
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="Amount">Số tiền (VNĐ)</label>
+                            <input id="Amount" class="form-control" type="number" min="1000" value="@contract.MonthlyPrice" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="PaymentMethod">Phương thức</label>
+                            <select id="PaymentMethod" class="form-select">
+                                <option value="Bank Transfer">Chuyển khoản ngân hàng</option>
+                                <option value="Cash">Tiền mặt</option>
+                                <option value="MoMo">MoMo</option>
+                                <option value="ZaloPay">ZaloPay</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="Notes">Ghi chú</label>
+                            <input id="Notes" class="form-control" type="text" placeholder="VD: Thanh toán tháng hiện tại" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button type="submit" id="btnSubmitPayment" class="btn btn-primary">💳 Xác nhận thanh toán</button>
+                    </div>
+                </form>
+
+                <form method="post" action="@Url.Action("QuickPayAjax", "Payment", new { contractId = contract.Id })" class="js-quickpay-ajax-form d-inline mt-2">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success" id="btnQuickPay">⚡ Thanh toán nhanh</button>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="card info-card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="paymentHistoryTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ngày thanh toán</th>
+                            <th>Số tiền</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr id="noPaymentRow">
+                                <td colspan="6" class="text-center py-4 text-muted">Chưa có lịch sử thanh toán nào.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var payment in Model)
+                            {
+                                <tr>
+                                    <td>@payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@payment.Amount.ToString("N0") VNĐ</td>
+                                    <td>@payment.PaymentMethod</td>
+                                    <td>
+                                        @if (payment.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                        }
+                                        else if (payment.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Thất bại</span>
+                                        }
+                                    </td>
+                                    <td>@payment.Notes</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", new { id = payment.Id })" class="btn btn-sm btn-info">Xem</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            let isSyncingPaymentTable = false;
+
+            function showAlert(type, message) {
+                $('#paymentActionAlert').html(
+                    `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`
+                );
+            }
+
+            async function syncPaymentHistorySilently() {
+                if (isSyncingPaymentTable || document.hidden) return;
+                isSyncingPaymentTable = true;
+
+                try {
+                    const response = await fetch(window.location.href, { cache: 'no-store' });
+                    if (!response.ok) return;
+
+                    const html = await response.text();
+                    const dom = $($.parseHTML(html));
+                    const newTbody = dom.find('#paymentHistoryTable tbody').html();
+                    if (newTbody) {
+                        $('#paymentHistoryTable tbody').html(newTbody);
+                    }
+                } catch {
+                    // Silent background sync
+                } finally {
+                    isSyncingPaymentTable = false;
+                }
+            }
+
+            function renderNewPaymentRow(item) {
+                $('#noPaymentRow').remove();
+                const badgeClass = item.status === 'Completed' ? 'bg-success' : (item.status === 'Pending' ? 'bg-warning text-dark' : 'bg-danger');
+                const rowHtml = `
+                    <tr>
+                        <td>${item.paymentDate}</td>
+                        <td>${item.amount}</td>
+                        <td>${item.paymentMethod}</td>
+                        <td><span class="badge ${badgeClass}">${item.statusText}</span></td>
+                        <td>${item.notes || ''}</td>
+                        <td><a href="${item.detailsUrl}" class="btn btn-sm btn-info">Xem</a></td>
+                    </tr>`;
+                $('#paymentHistoryTable tbody').prepend(rowHtml);
+            }
+
+            $('#paymentAjaxForm').on('submit', async function (e) {
+                e.preventDefault();
+
+                const btn = $('#btnSubmitPayment');
+                btn.prop('disabled', true);
+
+                const payload = {
+                    contractId: parseInt($('#ContractId').val(), 10),
+                    amount: parseFloat($('#Amount').val() || '0'),
+                    paymentMethod: $('#PaymentMethod').val(),
+                    notes: $('#Notes').val()
+                };
+
+                try {
+                    const token = $('#paymentAjaxForm input[name="__RequestVerificationToken"]').val();
+                    const response = await fetch($('#paymentAjaxForm').attr('action'), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        showAlert('danger', result.message || 'Thanh toán thất bại.');
+                        return;
+                    }
+
+                    showAlert('success', result.message || 'Thanh toán thành công.');
+                    renderNewPaymentRow(result.data);
+                    $('#paymentAjaxForm')[0].reset();
+                } catch {
+                    showAlert('danger', 'Không thể kết nối máy chủ để thanh toán.');
+                } finally {
+                    btn.prop('disabled', false);
+                }
+            });
+
+            $(document).on('submit', '.js-quickpay-ajax-form', async function (e) {
+                e.preventDefault();
+
+                const form = $(this);
+                const btn = $('#btnQuickPay');
+                btn.prop('disabled', true);
+
+                try {
+                    const response = await fetch(form.attr('action'), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: form.serialize()
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        showAlert('danger', result.message || 'Thanh toán nhanh thất bại.');
+                        return;
+                    }
+
+                    showAlert('success', result.message || 'Thanh toán nhanh thành công.');
+                    renderNewPaymentRow(result.data);
+                } catch {
+                    showAlert('danger', 'Không thể thực hiện thanh toán nhanh.');
+                } finally {
+                    btn.prop('disabled', false);
+                }
+            });
+
+            setInterval(syncPaymentHistorySilently, 5000);
+        });
+    </script>
+}

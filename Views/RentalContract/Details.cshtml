@@ -1,0 +1,215 @@
+@model QuanLyChoThuePhongTro.Models.RentalContract
+
+@{
+    ViewData["Title"] = "Chi tiết hợp đồng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var role = Context.Session.GetString("Role");
+    var userId = Context.Session.GetInt32("UserId");
+}
+
+<div class="container page-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h2 class="mb-1">Chi Tiết Hợp Đồng Thuê Phòng</h2>
+            <p class="text-muted mb-0">Thông tin chi tiết, trạng thái và các thao tác liên quan hợp đồng.</p>
+        </div>
+    </div>
+
+    <div id="contractDetailAlert"></div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card info-card">
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-3">
+                            <tr>
+                                <th>Phòng</th>
+                                <td>@Model.Room?.Title</td>
+                            </tr>
+                            <tr>
+                                <th>Người thuê</th>
+                                <td>@Model.Tenant?.FullName</td>
+                            </tr>
+                            <tr>
+                                <th>Chủ nhà</th>
+                                <td>@Model.Landlord?.FullName</td>
+                            </tr>
+                            <tr>
+                                <th>Giá hàng tháng</th>
+                                <td>@Model.MonthlyPrice.ToString("N0") VNĐ</td>
+                            </tr>
+                            <tr>
+                                <th>Tiền cọc</th>
+                                <td>@Model.Deposit.ToString("N0") VNĐ</td>
+                            </tr>
+                            <tr>
+                                <th>Từ ngày</th>
+                                <td>@Model.StartDate.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th>Đến ngày</th>
+                                <td>@Model.EndDate.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                            <tr>
+                                <th>Trạng thái</th>
+                                <td id="contractStatusWrapper">
+                                    @if (Model.Status == "Active")
+                                    {
+                                        <span class="badge bg-success">Đang hoạt động</span>
+                                    }
+                                    else if (Model.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                    }
+                                    else if (Model.Status == "Terminated")
+                                    {
+                                        <span class="badge bg-secondary">Đã kết thúc / Từ chối</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">@Model.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Lần thanh toán gần nhất</th>
+                                <td id="contractLastPaymentWrapper">@Model.LastPaymentDate?.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <h5 class="mb-2">Điều khoản và điều kiện</h5>
+                    <p class="mb-0">@Model.TermsAndConditions</p>
+                </div>
+            </div>
+
+            <div class="mt-3 d-flex flex-wrap gap-2">
+                @if (Model.Status == "Active")
+                {
+                    <a href="@Url.Action("ByContract", "Payment", new { contractId = Model.Id })" class="btn btn-dark">📋 Lịch sử thanh toán</a>
+
+                    @if (role == "Tenant")
+                    {
+                        <form method="post" action="@Url.Action("QuickPayAjax", "Payment", new { contractId = Model.Id })" style="display:inline" class="js-contract-detail-ajax-form" data-kind="quickpay">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success">💵 Thanh toán ngay</button>
+                        </form>
+                    }
+                }
+
+                @if (role == "Landlord" && Model.LandlordId == userId)
+                {
+                    <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">Sửa hợp đồng</a>
+                }
+
+                @if (role == "Landlord" && Model.LandlordId == userId && Model.Status == "Pending")
+                {
+                    <form method="post" action="@Url.Action("ApproveAjax", new { id = Model.Id })" class="js-contract-detail-ajax-form" data-kind="approve">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success"
+                                onclick="return confirm('Xác nhận chấp thuận hợp đồng này?')">
+                            ✔ Xác nhận hợp đồng
+                        </button>
+                    </form>
+                    <form method="post" action="@Url.Action("RejectAjax", new { id = Model.Id })" class="js-contract-detail-ajax-form" data-kind="reject">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Bạn có chắc muốn từ chối hợp đồng này?')">
+                            ✖ Từ chối hợp đồng
+                        </button>
+                    </form>
+                }
+
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Quay lại</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            let isSyncingContractDetail = false;
+
+            function showAlert(type, message) {
+                $('#contractDetailAlert').html(
+                    `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`
+                );
+            }
+
+            function updateStatusBadge(statusClass, statusText) {
+                $('#contractStatusWrapper').html(`<span class="badge ${statusClass}">${statusText}</span>`);
+            }
+
+            async function syncContractDetailSilently() {
+                if (isSyncingContractDetail || document.hidden) return;
+                isSyncingContractDetail = true;
+
+                try {
+                    const response = await fetch(window.location.href, { cache: 'no-store' });
+                    if (!response.ok) return;
+
+                    const html = await response.text();
+                    const dom = $($.parseHTML(html));
+
+                    const statusHtml = dom.find('#contractStatusWrapper').html();
+                    const lastPaymentHtml = dom.find('#contractLastPaymentWrapper').html();
+
+                    if (statusHtml) {
+                        $('#contractStatusWrapper').html(statusHtml);
+                    }
+
+                    if (lastPaymentHtml !== undefined) {
+                        $('#contractLastPaymentWrapper').html(lastPaymentHtml);
+                    }
+                } catch {
+                    // Silent background sync
+                } finally {
+                    isSyncingContractDetail = false;
+                }
+            }
+
+            $(document).on('submit', '.js-contract-detail-ajax-form', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const button = form.find('button[type="submit"]');
+                const kind = form.data('kind');
+
+                button.prop('disabled', true);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (res) {
+                        if (!res || !res.success) {
+                            showAlert('danger', res?.message || 'Thao tác thất bại.');
+                            return;
+                        }
+
+                        showAlert('success', res.message || 'Thao tác thành công.');
+
+                        if (kind === 'approve' || kind === 'reject') {
+                            updateStatusBadge(res.data.statusClass, res.data.statusText);
+                            $('.js-contract-detail-ajax-form[data-kind="approve"], .js-contract-detail-ajax-form[data-kind="reject"]').remove();
+                        }
+                    },
+                    error: function (xhr) {
+                        showAlert('danger', xhr?.responseJSON?.message || 'Có lỗi xảy ra khi xử lý yêu cầu.');
+                    },
+                    complete: function () {
+                        button.prop('disabled', false);
+                    }
+                });
+            });
+
+            setInterval(syncContractDetailSilently, 5000);
+        });
+    </script>
+}

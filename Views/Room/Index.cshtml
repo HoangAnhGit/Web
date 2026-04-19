@@ -1,0 +1,160 @@
+@model IEnumerable<QuanLyChoThuePhongTro.Models.Room>
+
+@{
+    ViewData["Title"] = "Danh sách phòng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container page-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Danh Sách Phòng Trọ</h2>
+            <p class="text-muted mb-0">Tìm nhanh theo từ khóa hoặc quận — cũng có thể dùng nút "Tìm kiếm nâng cao".</p>
+        </div>
+
+        <div class="d-flex gap-2 align-items-center">
+            <a href="@Url.Action("Search", "Room")" class="btn btn-outline-primary">
+                <i class="fas fa-search me-1"></i> Tìm kiếm nâng cao
+            </a>
+            @if (Context.Session.GetString("Role") == "Landlord")
+            {
+                <a href="@Url.Action("Create", "Room")" class="btn btn-success ms-2">
+                    <i class="fas fa-plus me-1"></i> Đăng tin mới
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body">
+            <form id="quickSearchForm" class="row g-2 align-items-center">
+                <div class="col-md-6">
+                    <input type="text" name="SearchQuery" id="QuickSearchQuery" class="form-control" placeholder="Từ khóa: tiêu đề, mô tả, địa chỉ..." />
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="District" id="QuickDistrict" class="form-control" placeholder="Quận/Huyện" />
+                </div>
+                <div class="col-md-2">
+                    <select name="Status" id="QuickStatus" class="form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="Available">Còn trống</option>
+                        <option value="Rented">Đã thuê</option>
+                        <option value="Maintenance">Bảo trì</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="submit" id="quickSearchBtn" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="roomActionAlert"></div>
+
+    <div id="resultsContainer">
+        @await Html.PartialAsync("_RoomList", Model)
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            var debounceTimer;
+            function renderLoading() {
+                $('#resultsContainer').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Đang tìm kiếm...</p></div>');
+            }
+
+            function doQuickSearch() {
+                var form = $('#quickSearchForm');
+                var data = form.serialize();
+
+                $('#quickSearchBtn').prop('disabled', true);
+                renderLoading();
+
+                $.ajax({
+                    url: '@Url.Action("Search", "Room")',
+                    type: 'POST',
+                    data: data,
+                    success: function (html) {
+                        $('#resultsContainer').html(html);
+                    },
+                    error: function () {
+                        $('#resultsContainer').html('<div class="alert alert-danger">Lỗi tìm kiếm. Vui lòng thử lại.</div>');
+                    },
+                    complete: function () {
+                        $('#quickSearchBtn').prop('disabled', false);
+                    }
+                });
+            }
+
+            function showActionAlert(type, message) {
+                $('#roomActionAlert').html(
+                    '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">'
+                    + message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'
+                );
+            }
+
+            function updateRoomCountAfterDelete() {
+                var currentRows = $('.room-card').length;
+                $('#roomCountBadge').text(currentRows + ' phòng');
+
+                if (currentRows === 0) {
+                    $('#resultsContainer .row').append('<div class="col-12" id="noRoomBlock"><div class="alert alert-info">Không còn phòng nào trong danh sách.</div></div>');
+                }
+            }
+
+            $('#quickSearchForm').on('submit', function (e) {
+                e.preventDefault();
+                doQuickSearch();
+            });
+
+            $(document).on('submit', '.js-room-delete-form', function (e) {
+                e.preventDefault();
+                if (!confirm('Bạn có chắc muốn xóa phòng này?')) {
+                    return;
+                }
+
+                var form = $(this);
+                var roomId = form.data('room-id');
+                var submitButton = form.find('button[type="submit"]');
+
+                submitButton.prop('disabled', true);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (res) {
+                        if (!res || !res.success) {
+                            showActionAlert('danger', res?.message || 'Xóa phòng thất bại.');
+                            return;
+                        }
+
+                        $('#room-card-' + roomId).remove();
+                        $('#noRoomBlock').remove();
+                        updateRoomCountAfterDelete();
+                        showActionAlert('success', res.message || 'Đã xóa phòng thành công.');
+                    },
+                    error: function (xhr) {
+                        var msg = xhr?.responseJSON?.message || 'Có lỗi xảy ra khi xóa phòng.';
+                        showActionAlert('danger', msg);
+                    },
+                    complete: function () {
+                        submitButton.prop('disabled', false);
+                    }
+                });
+            });
+
+            // Debounced auto-suggest behavior when user types (optional)
+            $('#QuickSearchQuery, #QuickDistrict, #QuickStatus').on('input change', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    doQuickSearch();
+                }, 400);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,9 @@
+@{
+    Layout = "_Layout";
+    
+    // Set user info from session
+    ViewBag.UserId = Context.Session.GetInt32("UserId");
+    ViewBag.Username = Context.Session.GetString("Username");
+    ViewBag.Role = Context.Session.GetString("Role");
+    ViewBag.UserRole = Context.Session.GetString("Role");
+}

@@ -1,0 +1,190 @@
+@{
+    ViewData["Title"] = "Tìm kiếm phòng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h2 class="mb-1">Tìm Kiếm Phòng Trọ</h2>
+            <p class="text-muted mb-0">Nhập thông tin bất kỳ, chỉ cần khớp 1 tiêu chí là sẽ có kết quả.</p>
+        </div>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Quay lại danh sách</a>
+    </div>
+
+    <div class="card shadow border-0 mb-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0"><i class="fas fa-search me-2"></i>Bộ lọc tìm kiếm</h5>
+        </div>
+        <div class="card-body">
+            <form id="searchForm">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="SearchQuery" class="form-label">Từ khóa:</label>
+                        <input type="text" class="form-control" id="SearchQuery" name="SearchQuery" placeholder="Tiêu đề, mô tả hoặc địa chỉ..." />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="District" class="form-label">Quận/Huyện:</label>
+                        <input type="text" class="form-control" id="District" name="District" placeholder="Ví dụ: Cầu Giấy" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="Ward" class="form-label">Phường/Xã:</label>
+                        <input type="text" class="form-control" id="Ward" name="Ward" placeholder="Ví dụ: Dịch Vọng" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Khoảng giá (VNĐ):</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="MinPrice" name="MinPrice" placeholder="Từ" />
+                            <input type="number" class="form-control" id="MaxPrice" name="MaxPrice" placeholder="Đến" />
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Diện tích (m²):</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="MinArea" name="MinArea" placeholder="Từ" />
+                            <input type="number" class="form-control" id="MaxArea" name="MaxArea" placeholder="Đến" />
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="Bedrooms" class="form-label">Số phòng ngủ ít nhất:</label>
+                        <input type="number" class="form-control" id="Bedrooms" name="Bedrooms" min="0" />
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="Bathrooms" class="form-label">Số phòng tắm ít nhất:</label>
+                        <input type="number" class="form-control" id="Bathrooms" name="Bathrooms" min="0" />
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="Status" class="form-label">Trạng thái:</label>
+                        <select class="form-select" id="Status" name="Status">
+                            <option value="">Tất cả</option>
+                            <option value="Available">Còn trống</option>
+                            <option value="Rented">Đã cho thuê</option>
+                            <option value="Maintenance">Đang bảo trì</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label d-block">Tiện ích:</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="HasKitchen" name="HasKitchen" value="true">
+                            <label class="form-check-label" for="HasKitchen">Có bếp</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="HasWiFi" name="HasWiFi" value="true">
+                            <label class="form-check-label" for="HasWiFi">Có WiFi</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="HasAirConditioner" name="HasAirConditioner" value="true">
+                            <label class="form-check-label" for="HasAirConditioner">Có điều hòa</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="HasWashing" name="HasWashing" value="true">
+                            <label class="form-check-label" for="HasWashing">Có máy giặt</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1" id="searchBtn">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm ngay
+                    </button>
+                    <button type="button" class="btn btn-outline-dark" id="resetBtn">
+                        Đặt lại bộ lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="resultsContainer">
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-info-circle fa-3x mb-3"></i>
+            <p>Nhập thông tin và nhấn nút Tìm kiếm để xem kết quả.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function renderError(message) {
+                $('#resultsContainer').html('<div class="alert alert-danger">' + message + '</div>');
+            }
+
+            function renderLoading() {
+                $('#resultsContainer').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Đang tìm kiếm...</p></div>');
+            }
+
+            function validateRanges() {
+                var minPrice = parseFloat($('#MinPrice').val());
+                var maxPrice = parseFloat($('#MaxPrice').val());
+                var minArea = parseFloat($('#MinArea').val());
+                var maxArea = parseFloat($('#MaxArea').val());
+
+                if (!isNaN(minPrice) && !isNaN(maxPrice) && minPrice > maxPrice) {
+                    renderError('Giá tối thiểu không được lớn hơn giá tối đa.');
+                    return false;
+                }
+
+                if (!isNaN(minArea) && !isNaN(maxArea) && minArea > maxArea) {
+                    renderError('Diện tích tối thiểu không được lớn hơn diện tích tối đa.');
+                    return false;
+                }
+
+                return true;
+            }
+
+            function searchRooms() {
+                if (!validateRanges()) {
+                    return;
+                }
+
+                var formData = $('#searchForm').serialize();
+                $('#searchBtn').prop('disabled', true);
+                renderLoading();
+
+                $.ajax({
+                    url: '@Url.Action("Search", "Room")',
+                    type: 'POST',
+                    data: formData,
+                    success: function (data) {
+                        $('#resultsContainer').html(data);
+                    },
+                    error: function () {
+                        renderError('Có lỗi xảy ra trong quá trình tìm kiếm. Vui lòng thử lại sau.');
+                    },
+                    complete: function () {
+                        $('#searchBtn').prop('disabled', false);
+                    }
+                });
+            }
+
+            var debounceTimer;
+            function searchRoomsDebounced() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(searchRooms, 400);
+            }
+
+            $('#searchForm').on('submit', function (e) {
+                e.preventDefault();
+                searchRooms();
+            });
+
+            $('#searchForm input[type="text"], #searchForm input[type="number"]').on('input', searchRoomsDebounced);
+            $('#searchForm select, #searchForm input[type="checkbox"]').on('change', searchRoomsDebounced);
+
+            $('#resetBtn').on('click', function () {
+                $('#searchForm')[0].reset();
+                searchRooms();
+            });
+
+            // Tải kết quả mặc định bằng AJAX ngay khi mở trang
+            searchRooms();
+        });
+    </script>
+}

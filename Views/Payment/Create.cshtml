@@ -1,0 +1,63 @@
+@model QuanLyChoThuePhongTro.Models.Payment
+
+@{
+    ViewData["Title"] = "Thêm thanh toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var contract = ViewBag.Contract as QuanLyChoThuePhongTro.Models.RentalContract;
+}
+
+<h2>Thêm Thanh Toán</h2>
+<hr />
+
+@if (contract != null)
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Hợp đồng #@contract.Id — @contract.Room?.Title</h5>
+            <p class="mb-0">Giá thuê hàng tháng: <strong>@contract.MonthlyPrice.ToString("N0") VNĐ</strong></p>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-5">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ContractId" />
+
+            <div class="mb-3">
+                <label asp-for="Amount" class="form-label">Số tiền thanh toán (VNĐ)</label>
+                <input asp-for="Amount" class="form-control" type="number" min="0" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PaymentMethod" class="form-label">Phương thức thanh toán</label>
+                <select asp-for="PaymentMethod" class="form-select">
+                    <option value="Bank Transfer">Chuyển khoản ngân hàng</option>
+                    <option value="Cash">Tiền mặt</option>
+                    <option value="MoMo">MoMo</option>
+                    <option value="ZaloPay">ZaloPay</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label">Ghi chú (tuỳ chọn)</label>
+                <textarea asp-for="Notes" class="form-control" rows="3" 
+                          placeholder="VD: Thanh toán tháng 3/2026"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">💳 Xác nhận thanh toán</button>
+                @if (contract != null)
+                {
+                    <a href="@Url.Action("ByContract", new { contractId = contract.Id })" class="btn btn-secondary">Hủy</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Hero Section -->
+<div class="bg-primary text-white py-5 mb-5" style="background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">Tìm Phòng Trọ Ưng Ý <br> Nhanh Chóng & Dễ Dàng</h1>
+                <p class="lead mb-4 opacity-90">Hệ thống quản lý và tìm kiếm phòng trọ thông minh, kết nối chủ nhà và người thuê một cách an toàn, tiện lợi.</p>
+                <div class="d-grid gap-2 d-sm-flex">
+                    <a href="@Url.Action("Index", "Room")" class="btn btn-light btn-lg px-4 gap-3 fw-bold text-primary">Tìm Phòng Ngay</a>
+                    @if (Context.Session.GetString("Role") == "Landlord")
+                    {
+                        <a href="@Url.Action("Create", "Room")" class="btn btn-outline-light btn-lg px-4">Đăng Tin</a>
+                    }
+                    else if (Context.Session.GetInt32("UserId") == null)
+                    {
+                        <a href="@Url.Action("Register", "Auth")" class="btn btn-outline-light btn-lg px-4">Đăng Ký Ngay</a>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <img src="https://cdni.iconscout.com/illustration/premium/thumb/house-search-3428236-2902695.png" alt="House Search" class="img-fluid" style="max-height: 400px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row g-4 text-center">
+        <div class="col-md-4">
+            <div class="p-4 rounded-3 shadow-sm h-100 border bg-white">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary fs-2 rounded-circle mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h3>Tìm kiếm thông minh</h3>
+                <p class="text-muted">Lọc phòng theo giá, vị trí và tiện ích một cách chính xác.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 rounded-3 shadow-sm h-100 border bg-white">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success fs-2 rounded-circle mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h3>An toàn & Tin cậy</h3>
+                <p class="text-muted">Thông tin xác thực, hợp đồng rõ ràng đảm bảo quyền lợi đôi bên.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-4 rounded-3 shadow-sm h-100 border bg-white">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning fs-2 rounded-circle mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-lightning"></i>
+                </div>
+                <h3>Nhanh chóng</h3>
+                <p class="text-muted">Liên hệ trực tiếp với chủ nhà và đặt phòng chỉ trong vài cú click.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="bg-light py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Bạn đã sẵn sàng trải nghiệm?</h2>
+        <a href="@Url.Action("Index", "Room")" class="btn btn-primary btn-lg">Khám phá danh sách phòng</a>
+    </div>
+</div>
