@@ -14,4 +14,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Tests\Services\" />
+  </ItemGroup>
+
 </Project>

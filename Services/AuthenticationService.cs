@@ -28,6 +28,11 @@ namespace QuanLyChoThuePhongTro.Services
 
         public async Task<User?> RegisterAsync(string username, string email, string password, string fullName, string role = "Tenant")
         {
+            username = username?.Trim() ?? string.Empty;
+            email = email?.Trim() ?? string.Empty;
+            fullName = fullName?.Trim() ?? string.Empty;
+            role = string.IsNullOrWhiteSpace(role) ? "Tenant" : role.Trim();
+
             // Check if user already exists
             var existingUser = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == username || u.Email == email);
@@ -41,6 +46,8 @@ namespace QuanLyChoThuePhongTro.Services
                 Email = email,
                 PasswordHash = HashPassword(password),
                 FullName = fullName,
+                PhoneNumber = string.Empty,
+                Address = string.Empty,
                 Role = role,
                 CreatedDate = DateTime.UtcNow,
                 IsActive = true
