@@ -110,6 +110,16 @@ namespace QuanLyChoThuePhongTro.Controllers
             }
 
             var rooms = await _roomService.SearchRoomsAsync(filter);
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            var userRole = HttpContext.Session.GetString("Role");
+
+            // Landlord chỉ được tìm trong phòng của chính mình
+            if (userId.HasValue && userRole == "Landlord")
+            {
+                rooms = rooms.Where(r => r.OwnerId == userId.Value);
+            }
+
             return PartialView("_RoomList", rooms);
         }
 
@@ -143,6 +153,11 @@ namespace QuanLyChoThuePhongTro.Controllers
             if (!ModelState.IsValid)
             {
                 return View(room);
+            }
+
+            if (string.IsNullOrWhiteSpace(room.Status))
+            {
+                room.Status = "Available";
             }
 
             room.OwnerId = userId.Value;

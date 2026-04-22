@@ -9,10 +9,10 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-0">Danh Sách Phòng Trọ</h2>
-            <p class="text-muted mb-0">Tìm nhanh theo từ khóa hoặc quận — cũng có thể dùng nút "Tìm kiếm nâng cao".</p>
+            <p class="text-muted mb-0">Tìm nhanh theo tên phòng ".</p>
         </div>
 
-        <div class="d-flex gap-2 align-items-center">
+        @* <div class="d-flex gap-2 align-items-center">
             <a href="@Url.Action("Search", "Room")" class="btn btn-outline-primary">
                 <i class="fas fa-search me-1"></i> Tìm kiếm nâng cao
             </a>
@@ -22,25 +22,15 @@
                     <i class="fas fa-plus me-1"></i> Đăng tin mới
                 </a>
             }
-        </div>
+        </div> *@
+
     </div>
 
     <div class="card mb-4 shadow-sm border-0">
         <div class="card-body">
             <form id="quickSearchForm" class="row g-2 align-items-center">
-                <div class="col-md-6">
-                    <input type="text" name="SearchQuery" id="QuickSearchQuery" class="form-control" placeholder="Từ khóa: tiêu đề, mô tả, địa chỉ..." />
-                </div>
-                <div class="col-md-3">
-                    <input type="text" name="District" id="QuickDistrict" class="form-control" placeholder="Quận/Huyện" />
-                </div>
-                <div class="col-md-2">
-                    <select name="Status" id="QuickStatus" class="form-select">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="Available">Còn trống</option>
-                        <option value="Rented">Đã thuê</option>
-                        <option value="Maintenance">Bảo trì</option>
-                    </select>
+                <div class="col-md-11">
+                    <input type="text" name="SearchQuery" id="QuickSearchQuery" class="form-control" placeholder="Tìm theo tên phòng..." />
                 </div>
                 <div class="col-md-1 d-grid">
                     <button type="submit" id="quickSearchBtn" class="btn btn-primary">
@@ -149,7 +139,7 @@
             });
 
             // Debounced auto-suggest behavior when user types (optional)
-            $('#QuickSearchQuery, #QuickDistrict, #QuickStatus').on('input change', function () {
+            $('#QuickSearchQuery').on('input', function () {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(function () {
                     doQuickSearch();
