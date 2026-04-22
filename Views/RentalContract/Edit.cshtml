@@ -11,6 +11,8 @@
             <h2 class="mb-1">Sửa Hợp Đồng Thuê Phòng</h2>
             <p class="text-muted mb-0">Cập nhật thông tin hợp đồng và điều khoản thuê.</p>
         </div>
+
+    <div id="editContractAlert"></div>
     </div>
 
     <div class="row">
@@ -19,6 +21,7 @@
                 <div class="card-body p-4">
                     <form asp-action="Edit" method="post">
                         @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="RoomId" />
                         <input type="hidden" asp-for="TenantId" />
@@ -87,4 +90,27 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(function () {
+            function showAlert(type, message) {
+                $('#editContractAlert').html(
+                    `<div class="alert alert-${type} alert-dismissible fade show" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`
+                );
+            }
+
+            $('form[asp-action="Edit"], form').on('submit', function (e) {
+                const startDate = $('#StartDate').val();
+                const endDate = $('#EndDate').val();
+
+                if (startDate && endDate && startDate >= endDate) {
+                    e.preventDefault();
+                    showAlert('danger', 'Ngày bắt đầu phải nhỏ hơn ngày kết thúc.');
+                    return false;
+                }
+
+                return true;
+            });
+        });
+    </script>
 }

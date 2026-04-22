@@ -407,6 +407,33 @@ namespace QuanLyChoThuePhongTro.Controllers
                 return Forbid();
             }
 
+            if (contract.StartDate.Date >= contract.EndDate.Date)
+            {
+                ModelState.AddModelError("", "Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+            }
+
+            if (contract.MonthlyPrice < 0)
+            {
+                ModelState.AddModelError("MonthlyPrice", "Giá hàng tháng không được âm.");
+            }
+
+            if (contract.Deposit < 0)
+            {
+                ModelState.AddModelError("Deposit", "Tiền cọc không được âm.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                existingContract.MonthlyPrice = contract.MonthlyPrice;
+                existingContract.Deposit = contract.Deposit;
+                existingContract.StartDate = contract.StartDate;
+                existingContract.EndDate = contract.EndDate;
+                existingContract.Status = contract.Status;
+                existingContract.TermsAndConditions = contract.TermsAndConditions;
+
+                return View(existingContract);
+            }
+
             // Cập nhật trực tiếp trên entity đã track để tránh lỗi duplicate tracking
             existingContract.MonthlyPrice = contract.MonthlyPrice;
             existingContract.Deposit = contract.Deposit;
