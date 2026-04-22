@@ -1,350 +1,242 @@
-# Quản lý Cho thuê Phòng trọ (Room Rental Management System)
+﻿Here's the improved `README.md` file, incorporating the new content while maintaining the existing structure and information:
 
-## Mục tiêu đề tài
+# Quản lý Cho thuê Phòng trọ (Room Rental Management System)			
 
-- **CRUD Operations**: Quản lý thông tin phòng trọ (Create, Read, Update, Delete)
-- **Dynamic Data Display**: Hiển thị dữ liệu động qua Ajax hoặc Fetch API
-- **Security**: Xác thực người dùng (Authentication), phân quyền (Authorization), Session, Cookie
-- **Caching**: Áp dụng kỹ thuật Caching để tăng hiệu năng
-- **User Interface**: Giao diện thân thiện, có báo cáo thống kê
+## Giới thiệu
+Hệ thống web hỗ trợ quản lý hoạt động cho thuê phòng trọ với 3 vai trò chính:
+- **Admin**: Quản lý người dùng toàn hệ thống.
+- **Landlord (Chủ nhà)**: Quản lý phòng và duyệt hợp đồng thuê.
+- **Tenant (Người thuê)**: Tìm kiếm phòng, tạo hợp đồng và thanh toán.
 
-## Yêu cầu nghiệp vụ
+Dự án được xây dựng bằng **ASP.NET Core 8**, dùng **Entity Framework Core** với **PostgreSQL**, giao diện **Razor Views + Bootstrap 5**, kết hợp **AJAX** cho trải nghiệm tìm kiếm và thao tác nhanh.
 
-1. **CRUD Phòng trọ**: Quản lý thông tin phòng trọ (địa chỉ, giá, tiện ích, v.v.)
-2. **Tìm kiếm**: Tìm kiếm phòng theo vị trí, giá cả
-3. **Đăng ký thuê online**: Người dùng có thể đăng ký thuê phòng trực tuyến
-4. **Quản lý hợp đồng**: Quản lý hợp đồng thuê phòng
+## Mục tiêu dự án
+- Quản lý phòng trọ theo mô hình CRUD.
+- Xác thực người dùng và phân quyền theo vai trò.
+- Quản lý vòng đời hợp đồng thuê (Pending/Active/Terminated).
+- Quản lý thanh toán theo hợp đồng.
+- Tìm kiếm/lọc phòng nâng cao theo nhiều tiêu chí.
+- Tối ưu hiệu năng bằng **In-Memory Cache**.
 
 ## Công nghệ sử dụng
+- **Backend**: ASP.NET Core 8 (MVC + Razor Pages support)
+- **ORM**: Entity Framework Core 8
+- **Database**: PostgreSQL + Npgsql
+- **Frontend**: Razor, Bootstrap 5, jQuery
+- **Auth**: Session-based Authentication
+- **Security**: CSRF Token, Password Hashing (PBKDF2 SHA256)
+- **Caching**: `IMemoryCache`
 
-- **Framework**: ASP.NET Core 8.0 MVC
-- **Database**: PostgreSQL
-- **ORM**: Entity Framework Core
-- **Frontend**: HTML, CSS, Bootstrap 5, JavaScript
-- **Authentication**: Session-based
-- **Caching**: In-Memory Cache
+## Kiến trúc tổng quan
+Dự án áp dụng kiến trúc phân tầng:
+- `Controllers`: xử lý request/response và điều hướng.
+- `Services`: business logic (ví dụ cache phòng, xác thực).
+- `Repositories`: truy cập dữ liệu qua EF Core.
+- `Data/ApplicationDbContext`: cấu hình mô hình và quan hệ DB.
+- `Views`: giao diện Razor theo từng module.
 
-## Cấu trúc dự án
+Luồng tổng quát:
+1. User gửi request từ UI.
+2. `Controller` xử lý và gọi `Service`/`Repository`.
+3. `Repository` tương tác DB qua `ApplicationDbContext`.
+4. Kết quả trả về `View` hoặc JSON (AJAX).
 
-```
+## Cấu trúc thư mục
 QuanLyChoThuePhongTro/
-├── Models/                  # Các lớp dữ liệu
-│   ├── User.cs
-│   ├── Room.cs
-│   ├── RentalContract.cs
-│   └── Payment.cs
-├── Controllers/             # Các controller
+├── Controllers/
 │   ├── AuthController.cs
+│   ├── HomeController.cs
 │   ├── RoomController.cs
 │   ├── RentalContractController.cs
-│   ├── UserController.cs
-│   └── PaymentController.cs
-├── Services/               # Business logic
-│   ├── RoomService.cs
-│   └── AuthenticationService.cs
-├── Repositories/           # Data access
+│   ├── PaymentController.cs
+│   └── UserController.cs
+├── Data/
+│   └── ApplicationDbContext.cs
+├── Models/
+│   ├── User.cs
+│   ├── Room.cs
+│   ├── RoomFilter.cs
+│   ├── RentalContract.cs
+│   └── Payment.cs
+├── Repositories/
+│   ├── UserRepository.cs
 │   ├── RoomRepository.cs
 │   ├── RentalContractRepository.cs
-│   ├── UserRepository.cs
 │   └── PaymentRepository.cs
-├── Data/                   # Database context
-│   └── ApplicationDbContext.cs
-├── Views/                  # Razor views
+├── Services/
+│   ├── AuthenticationService.cs
+│   ├── IRoomService.cs
+│   └── RoomService.cs
+├── Views/
+│   ├── Auth/
 │   ├── Home/
 │   ├── Room/
-│   ├── Auth/
 │   ├── RentalContract/
-│   ├── User/
 │   ├── Payment/
+│   ├── User/
 │   └── Shared/
-├── wwwroot/               # Static files
-│   ├── css/
-│   └── js/
-├── Program.cs            # Entry point
-├── appsettings.json      # Configuration
-└── QuanLyChoThuePhongTro.csproj
-```
+├── Migrations/
+├── wwwroot/
+├── Program.cs
+├── appsettings.json
+└── init_database.sql
 
-## Hướng dẫn cài đặt
+## Thiết kế dữ liệu (Entity chính)
+### `User`
+- `Id`, `Username`, `Email`, `PasswordHash`, `FullName`, `PhoneNumber`, `Address`
+- `Role`: `Admin | Landlord | Tenant`
+- `IsActive`, `CreatedDate`, `UpdatedDate`
 
-### Yêu cầu hệ thống
+### `Room`
+- `Title`, `Description`, `Price`, `Location`, `District`, `Ward`, `Area`
+- `Bedrooms`, `Bathrooms`, `HasKitchen`, `HasWiFi`, `HasAirConditioner`, `HasWashing`
+- `Status`: `Available | Rented | Maintenance`
+- `OwnerId`, `ImageUrls`, `CreatedDate`, `UpdatedDate`
 
-- .NET 8.0 SDK trở lên
-- PostgreSQL 12 trở lên
-- Visual Studio 2022 hoặc VS Code
-- Git
+### `RentalContract`
+- `RoomId`, `TenantId`, `LandlordId`
+- `MonthlyPrice`, `Deposit`
+- `StartDate`, `EndDate`
+- `Status`: `Pending | Active | Expired | Terminated`
+- `TermsAndConditions`, `LastPaymentDate`, `RemainingDeposit`
 
-### Cài đặt các công nghệ liên quan
+### `Payment`
+- `ContractId`, `Amount`, `PaymentDate`, `PaymentMethod`
+- `Status`: `Pending | Completed | Failed`
+- `Notes`, `CreatedDate`
 
-#### 1. Cài đặt .NET 8.0 SDK
+## Chức năng chính theo module
+### 1) Xác thực (`Auth`)
+- Đăng ký tài khoản.
+- Đăng nhập/đăng xuất.
+- Lưu thông tin phiên đăng nhập qua Session (`UserId`, `Username`, `Role`).
+- Chặn đăng ký role `Admin` từ UI công khai.
 
-**Windows:**
-- Tải từ: https://dotnet.microsoft.com/download
-- Chọn `.NET 8.0 SDK` (Windows x64 hoặc x86)
-- Chạy installer và follow hướng dẫn
-- Kiểm tra: `dotnet --version`
+### 2) Quản lý phòng (`Room`)
+- CRUD phòng trọ.
+- Upload nhiều ảnh khi tạo/sửa phòng.
+- Phân quyền: chỉ chủ phòng mới sửa/xóa phòng đó.
+- Tìm kiếm nâng cao bằng AJAX + partial view (`_RoomList`).
 
-**macOS:**
-```bash
-# Sử dụng Homebrew
-brew install dotnet
+### 3) Quản lý hợp đồng (`RentalContract`)
+- Tenant tạo hợp đồng từ phòng đang quan tâm.
+- Landlord duyệt (`Approve`) hoặc từ chối (`Reject`) hợp đồng.
+- Khi duyệt hợp đồng: phòng tự động chuyển trạng thái `Rented`.
+- Hỗ trợ cả thao tác thường và AJAX.
 
-# Hoặc tải từ: https://dotnet.microsoft.com/download
-```
+### 4) Quản lý thanh toán (`Payment`)
+- Tenant tạo thanh toán cho hợp đồng đang `Active`.
+- Thanh toán nhanh (`QuickPay`).
+- Lưu lịch sử thanh toán theo hợp đồng.
+- Cập nhật `LastPaymentDate` cho hợp đồng sau mỗi giao dịch.
 
-**Linux (Ubuntu/Debian):**
-```bash
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x dotnet-install.sh
-./dotnet-install.sh --version 8.0
-```
+### 5) Quản lý người dùng (`User`)
+- Admin xem/sửa/xóa người dùng.
+- Admin không thể tự xóa tài khoản của chính mình.
+- Người dùng cập nhật hồ sơ cá nhân tại `Profile`.
 
-#### 2. Cài đặt PostgreSQL
+### 6) Dashboard (`Home/Dashboard`)
+- Hiển thị tổng số phòng, tổng hợp đồng, hợp đồng hiệu lực.
+- Tính doanh thu dựa trên các giao dịch `Completed`.
 
-**Windows:**
-- Tải từ: https://www.postgresql.org/download/windows/
-- Chọn phiên bản mới nhất (15 hoặc cao hơn)
-- Chạy installer
-- **Nhớ password cho user `postgres`**
-- Chọn port mặc định: `5432`
-- Chọn cài đặt `pgAdmin` (GUI tool)
+## Bảo mật và hiệu năng
+### Bảo mật
+- Hash mật khẩu bằng **PBKDF2 SHA256** (`Rfc2898DeriveBytes`).
+- Kiểm tra quyền theo role và ownership tại các action quan trọng.
+- Dùng `[ValidateAntiForgeryToken]` để chống CSRF với các POST request.
+- Session timeout 30 phút.
 
-**macOS:**
-```bash
-# Sử dụng Homebrew
-brew install postgresql
+### Hiệu năng
+- Cache danh sách phòng và phòng chi tiết bằng `IMemoryCache`.
+- Tự động xóa cache sau khi thêm/sửa/xóa phòng.
+- Truy vấn bất đồng bộ (`async/await`) xuyên suốt repository/service.
 
-# Khởi động PostgreSQL
-brew services start postgresql
+## Yêu cầu môi trường
+- .NET SDK 8.0+
+- PostgreSQL 12+
+- Visual Studio 2022 / VS Code
+- `dotnet-ef` tool
 
-# Hoặc tải từ: https://www.postgresql.org/download/macosx/
-```
+## Hướng dẫn cài đặt nhanh
+### 1) Clone mã nguồn
+git clone <repository-url>
+cd <project-folder>
 
-**Linux (Ubuntu/Debian):**
-```bash
-sudo apt update
-sudo apt install postgresql postgresql-contrib
+### 2) Cấu hình database
+- Tạo DB thủ công hoặc chạy script:
+psql -U postgres -f init_database.sql
 
-# Khởi động service
-sudo systemctl start postgresql
-sudo systemctl enable postgresql
-```
-
-#### 3. Cài đặt Visual Studio Code (tùy chọn)
-
-- Tải từ: https://code.visualstudio.com/
-- Extensions cần thiết:
-  - **C# Dev Kit** (Microsoft)
-  - **Entity Framework Core Power Tools** (Eric Jacobson)
-  - **PostgreSQL Explorer** (chutibox)
-
-#### 4. Cài đặt pgAdmin (GUI cho PostgreSQL)
-
-- Tải từ: https://www.pgadmin.org/download/
-- Hoặc cài qua Homebrew: `brew install pgadmin4`
-- Truy cập: http://localhost:5050
-
-### Các bước cài đặt dự án
-
-#### 1. Clone hoặc tải dự án
-```bash
-# Clone từ repository
-git clone [repository-url]
-cd QuanLyChoThuePhongTro
-
-# Hoặc giải nén nếu tải file zip
-cd QuanLyChoThuePhongTro
-```
-
-#### 2. Cấu hình PostgreSQL
-
-**Tạo database và user (dùng psql):**
-
-Mở Command Prompt/Terminal và kết nối:
-```bash
-psql -U postgres
-```
-
-Nhập password đã tạo khi cài PostgreSQL.
-
-Sau đó chạy các lệnh SQL:
-```sql
--- Tạo user mới (tùy chọn)
-CREATE USER quan_ly_user WITH PASSWORD 'password123';
-
--- Tạo database
-CREATE DATABASE quan_ly_cho_thue_phong_tro OWNER postgres;
-
--- Hoặc nếu dùng user vừa tạo
-CREATE DATABASE quan_ly_cho_thue_phong_tro OWNER quan_ly_user;
-
--- Cấp quyền
-GRANT ALL PRIVILEGES ON DATABASE quan_ly_cho_thue_phong_tro TO postgres;
-
--- Kết nối database
-\c quan_ly_cho_thue_phong_tro
-
--- Kiểm tra
-\dt
-```
-
-**Cách khác (dùng pgAdmin):**
-1. Mở pgAdmin
-2. Kết nối đến Server `localhost`
-3. Chuột phải `Databases` → `Create` → `Database`
-4. Tên: `quan_ly_cho_thue_phong_tro`
-5. Click `Save`
-
-#### 3. Cấu hình connection string
-
-Mở file [appsettings.json](appsettings.json) và cập nhật:
-
-```json
+- Cập nhật chuỗi kết nối trong `appsettings.json`:
 "ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Port=5432;Database=quan_ly_cho_thue_phong_tro;User Id=postgres;Password=YOUR_PASSWORD;"
+  "DefaultConnection": "Server=localhost;Port=5432;Database=quan_ly_cho_thue_phong_tro;User Id=postgres;Password=<YOUR_PASSWORD>"
 }
-```
 
-Thay `YOUR_PASSWORD` bằng password của user `postgres` hoặc user tương ứng.
-
-#### 4. Cài đặt dependencies
-
-```bash
-# Restore NuGet packages
+### 3) Restore + migrate
 dotnet restore
-```
-
-#### 5. Tạo migrations và database
-
-```bash
-# Cài đặt Entity Framework CLI (nếu chưa có)
-dotnet tool install --global dotnet-ef
-
-# Tạo migration ban đầu
-dotnet ef migrations add InitialCreate
-
-# Apply migrations tới database
 dotnet ef database update
-```
 
-#### 6. Chạy dự án
-
-```bash
-# Chạy application
+### 4) Chạy ứng dụng
 dotnet run
 
-# Hoặc sử dụng watch mode (tự động reload)
-dotnet watch
-```
+> Ứng dụng tự động chạy migration khi startup và seed tài khoản admin nếu chưa tồn tại.
 
-Ứng dụng sẽ chạy tại: `https://localhost:7xxx` (kiểm tra output để biết port)
+## Tài khoản mặc định (seed)
+Khi chạy lần đầu, hệ thống tự tạo tài khoản:
+- Username: `admin`
+- Password: `admin123`
+- Role: `Admin`
 
-#### 7. Truy cập ứng dụng
+> Khuyến nghị đổi mật khẩu ngay sau khi đăng nhập lần đầu.
 
-- **URL**: https://localhost:5001 hoặc http://localhost:5000
-- **Đăng ký tài khoản** hoặc sử dụng tài khoản test
+## API/Route thao tác nổi bật
+- `GET /Room` — danh sách phòng.
+- `POST /Room/Search` — tìm kiếm phòng (trả partial HTML).
+- `POST /RentalContract/Approve/{id}` — duyệt hợp đồng.
+- `POST /RentalContract/Reject/{id}` — từ chối hợp đồng.
+- `POST /Payment/QuickPay/{contractId}` — thanh toán nhanh.
 
-### Troubleshooting
+## Kịch bản nghiệp vụ mẫu
+### Kịch bản 1: Thuê phòng
+1. Tenant đăng nhập.
+2. Tenant tìm phòng phù hợp.
+3. Tenant tạo hợp đồng (trạng thái `Pending`).
+4. Landlord duyệt hợp đồng -> `Active`.
+5. Tenant thanh toán kỳ đầu.
 
-**Lỗi: "Failed to connect to localhost:5432"**
-- Kiểm tra PostgreSQL đang chạy: `pg_isready`
-- Restart PostgreSQL service
-- Kiểm tra connection string trong `appsettings.json`
+### Kịch bản 2: Chủ nhà quản lý phòng
+1. Landlord đăng nhập.
+2. Tạo phòng mới + upload ảnh.
+3. Chỉnh sửa thông tin/giá/tình trạng.
+4. Xóa phòng không còn kinh doanh.
 
-**Lỗi: "Database quan_ly_cho_thue_phong_tro doesn't exist"**
-```bash
-# Tạo database qua command line
-createdb -U postgres quan_ly_cho_thue_phong_tro
+## Kiểm thử khuyến nghị
+- Đăng nhập với từng role và xác minh quyền truy cập.
+- Kiểm tra tạo/sửa/xóa phòng bởi đúng chủ sở hữu.
+- Kiểm tra luồng hợp đồng `Pending -> Active/Terminated`.
+- Kiểm tra thanh toán chỉ cho hợp đồng `Active`.
+- Kiểm tra tìm kiếm với nhiều bộ lọc đồng thời.
 
-# Hoặc dùng pgAdmin
-```
+## Troubleshooting
+### Không kết nối được PostgreSQL
+- Kiểm tra service PostgreSQL đang chạy.
+- Kiểm tra `Port`, `User Id`, `Password` trong connection string.
 
-**Lỗi: "password authentication failed"**
-- Kiểm tra password trong `appsettings.json`
-- Reset password PostgreSQL (Windows):
-  ```bash
-  pg_dump -U postgres -d postgres > backup.sql
-  ```
+### Lỗi migrate
+dotnet ef migrations add InitialCreate
+dotnet ef database update
 
-**Lỗi: "A project file was not found in"**
-- Chắc chắn bạn đang trong thư mục chứa file `.csproj`
-- Kiểm tra tên thư mục không có khoảng trắng đặc biệt
+### Lỗi thiếu package
+dotnet restore
 
-## Các vai trò người dùng
+## Định hướng phát triển
+- Tích hợp bản đồ và định vị.
+- Tích hợp cổng thanh toán thực tế.
+- Tách ảnh phòng thành bảng riêng thay vì chuỗi CSV.
+- Thêm thông báo email/sms.
+- Viết unit test/integration test.
+- Docker hóa và CI/CD.
 
-1. **Admin**: Quản lý toàn bộ hệ thống
-2. **Landlord** (Chủ nhà): Đăng ký phòng, quản lý hợp đồng của mình
-3. **Tenant** (Người thuê): Tìm kiếm phòng, đăng ký thuê, quản lý hợp đồng của mình
+## License
+Dự án phục vụ mục đích học tập và nghiên cứu.
 
-## Các tính năng chính
-
-### Quản lý Phòng
-- Tạo phòng mới (chỉ Landlord)
-- Xem danh sách phòng
-- Cập nhật thông tin phòng
-- Xóa phòng
-- Tìm kiếm phòng theo vị trí, giá cả
-- Caching dữ liệu phòng
-
-### Quản lý Người dùng (Chỉ Admin)
-- Xem danh sách toàn bộ người dùng
-- Chỉnh sửa thông tin người dùng (Vai trò, trạng thái)
-- Xóa người dùng (có xác nhận)
-- Phân quyền người dùng (Admin, Landlord, Tenant)
-
-### Xác thực & Phân quyền
-- Đăng ký tài khoản
-- Đăng nhập
-- Đăng xuất
-- Session management
-- Role-based access control
-
-### Quản lý Hợp đồng
-- Tạo hợp đồng thuê
-- Xem danh sách hợp đồng
-- Cập nhật trạng thái hợp đồng
-- Xóa hợp đồng (chỉ Landlord)
-
-### Quản lý Thanh toán
-- Tạo thanh toán cho hợp đồng (Tenant)
-- Xem lịch sử thanh toán của hợp đồng
-- Thanh toán nhanh (Quick Pay)
-- Xem chi tiết biên lai thanh toán
-
-### Tìm kiếm & Lọc
-- Tìm kiếm theo vị trí
-- Lọc theo khoảng giá
-- Hiển thị kết quả động (Ajax)
-
-## Bảo mật
-
-- **Password Hashing**: Sử dụng PBKDF2 với SHA256
-- **Session Management**: Timeout 30 phút
-- **Authorization**: Kiểm tra quyền truy cập dựa trên vai trò
-- **CSRF Protection**: Token validation trong form
-
-## Hiệu năng
-
-- **In-Memory Cache**: Cache danh sách phòng với TTL 30 phút
-- **Lazy Loading**: Entity relationships được load khi cần
-- **Async/Await**: Tất cả database operations đều async
-
-## Hướng phát triển
-
-- [x] Thêm chức năng thanh toán online
-- [ ] Tích hợp bản đồ (Google Maps)
-- [ ] Upload hình ảnh phòng
-- [ ] Hệ thống đánh giá & bình luận
-- [ ] Email notifications
-- [ ] Mobile app
-- [ ] Analytics dashboard
-
-
-
-## Ngày tạo
-
-Tháng 1 năm 2026
-
----
-
-**Note**: Đây là dự án hoc tập cho môn học Phát triển Ứng dụng Web nâng cao
+This version maintains the original structure while ensuring clarity and coherence throughout the document. Each section is clearly defined, and the content flows logically from one topic to the next.
