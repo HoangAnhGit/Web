@@ -66,6 +66,11 @@ namespace QuanLyChoThuePhongTro.Controllers
             var existingUser = await _userRepository.GetByIdAsync(id);
             if (existingUser == null) return NotFound();
 
+            user.FullName = (user.FullName ?? string.Empty).Trim();
+            user.Email = (user.Email ?? string.Empty).Trim();
+            user.PhoneNumber = (user.PhoneNumber ?? string.Empty).Trim();
+            user.Address = (user.Address ?? string.Empty).Trim();
+
             // Admin updates role and status
             existingUser.Role = user.Role;
             existingUser.IsActive = user.IsActive;
@@ -160,6 +165,11 @@ namespace QuanLyChoThuePhongTro.Controllers
 
             var existingUser = await _userRepository.GetByIdAsync(userId.Value);
             if (existingUser == null) return NotFound();
+
+            user.FullName = (user.FullName ?? string.Empty).Trim();
+            user.Email = (user.Email ?? string.Empty).Trim();
+            user.PhoneNumber = (user.PhoneNumber ?? string.Empty).Trim();
+            user.Address = (user.Address ?? string.Empty).Trim();
 
             // User updates their own info (cannot change role or status via profile)
             existingUser.FullName = user.FullName;

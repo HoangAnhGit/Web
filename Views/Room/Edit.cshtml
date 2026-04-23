@@ -15,49 +15,58 @@
     <div class="col-md-8 offset-md-2">
         <h2>Chỉnh Sửa Phòng Trọ</h2>
         <form asp-action="Edit" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="Id" value="@Model.Id" />
-            <input type="hidden" name="OwnerId" value="@Model.OwnerId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="OwnerId" type="hidden" />
             <input type="hidden" name="CreatedDate" value="@createdDateStr" />
             @* Giữ nguyên ảnh cũ qua hidden field *@
             <input type="hidden" name="existingImageUrls" value="@Model.ImageUrls" />
 
             <div class="mb-3">
                 <label for="title" class="form-label">Tiêu đề:</label>
-                <input type="text" class="form-control" id="title" name="title" value="@Model.Title" required />
+                <input asp-for="Title" type="text" class="form-control" id="title" required />
+                <span asp-validation-for="Title" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Mô tả:</label>
-                <textarea class="form-control" id="description" name="description" rows="4">@Model.Description</textarea>
+                <textarea asp-for="Description" class="form-control" id="description" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="price" class="form-label">Giá thuê (VNĐ/tháng):</label>
-                        <input type="number" class="form-control" id="price" name="price" value="@Model.Price" required />
+                        <input asp-for="Price" type="number" class="form-control" id="price" required />
+                        <span asp-validation-for="Price" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="area" class="form-label">Diện tích (m²):</label>
-                        <input type="number" class="form-control" id="area" name="area" step="0.1" value="@Model.Area" required />
+                        <input asp-for="Area" type="number" class="form-control" id="area" step="0.1" required />
+                        <span asp-validation-for="Area" class="text-danger"></span>
                     </div>
                 </div>
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">Địa chỉ:</label>
-                <input type="text" class="form-control" id="location" name="location" value="@Model.Location" required />
+                <input asp-for="Location" type="text" class="form-control" id="location" required />
+                <span asp-validation-for="Location" class="text-danger"></span>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="district" class="form-label">Quận:</label>
-                        <input type="text" class="form-control" id="district" name="district" value="@Model.District" required />
+                        <input asp-for="District" type="text" class="form-control" id="district" required />
+                        <span asp-validation-for="District" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="ward" class="form-label">Phường:</label>
-                        <input type="text" class="form-control" id="ward" name="ward" value="@Model.Ward" required />
+                        <input asp-for="Ward" type="text" class="form-control" id="ward" required />
+                        <span asp-validation-for="Ward" class="text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -65,65 +74,39 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="bedrooms" class="form-label">Số phòng ngủ:</label>
-                        <input type="number" class="form-control" id="bedrooms" name="bedrooms" value="@Model.Bedrooms" />
+                        <input asp-for="Bedrooms" type="number" class="form-control" id="bedrooms" />
+                        <span asp-validation-for="Bedrooms" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="bathrooms" class="form-label">Số phòng tắm:</label>
-                        <input type="number" class="form-control" id="bathrooms" name="bathrooms" value="@Model.Bathrooms" />
+                        <input asp-for="Bathrooms" type="number" class="form-control" id="bathrooms" />
+                        <span asp-validation-for="Bathrooms" class="text-danger"></span>
                     </div>
                 </div>
             </div>
             <div class="mb-3">
                 <div class="form-check">
-                    @if (Model.HasKitchen)
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasKitchen" name="hasKitchen" checked />
-                    }
-                    else
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasKitchen" name="hasKitchen" />
-                    }
+                    <input asp-for="HasKitchen" class="form-check-input" type="checkbox" id="hasKitchen" />
                     <label class="form-check-label" for="hasKitchen">Có bếp</label>
                 </div>
                 <div class="form-check">
-                    @if (Model.HasWiFi)
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasWiFi" name="hasWiFi" checked />
-                    }
-                    else
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasWiFi" name="hasWiFi" />
-                    }
+                    <input asp-for="HasWiFi" class="form-check-input" type="checkbox" id="hasWiFi" />
                     <label class="form-check-label" for="hasWiFi">Có WiFi</label>
                 </div>
                 <div class="form-check">
-                    @if (Model.HasAirConditioner)
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasAirConditioner" name="hasAirConditioner" checked />
-                    }
-                    else
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasAirConditioner" name="hasAirConditioner" />
-                    }
+                    <input asp-for="HasAirConditioner" class="form-check-input" type="checkbox" id="hasAirConditioner" />
                     <label class="form-check-label" for="hasAirConditioner">Có điều hòa</label>
                 </div>
                 <div class="form-check">
-                    @if (Model.HasWashing)
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasWashing" name="hasWashing" checked />
-                    }
-                    else
-                    {
-                        <input class="form-check-input" type="checkbox" id="hasWashing" name="hasWashing" />
-                    }
+                    <input asp-for="HasWashing" class="form-check-input" type="checkbox" id="hasWashing" />
                     <label class="form-check-label" for="hasWashing">Có máy giặt</label>
                 </div>
             </div>
             <div class="mb-3">
                 <label for="status" class="form-label">Trạng thái:</label>
-                <select class="form-select" id="status" name="status">
+                <select asp-for="Status" class="form-select" id="status">
                     @if (Model.Status == "Available")
                     {
                         <option value="Available" selected>Có sẵn</option>
@@ -183,6 +166,8 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
         // Preview ảnh mới chọn
         document.getElementById('roomImages').addEventListener('change', function () {
